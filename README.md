@@ -7,7 +7,9 @@ This script automates the process of creating a CMakeLists.txt file for a specif
 This script is intended to be used from the command line and does not require any command line arguments. From within the root directory of an OpenFOAM case, run the script:
 
 
-python generate_cmake_lists.py
+python generate_cmake_lists.py [option]
+
+Where option (optional) is Xcode or xcode. If this option is provided, the script will generate a project file named projectName.xcodeproj.
 
 
 

@@ -1,7 +1,10 @@
+#!/usr/bin/env python
 import re
 import os
 import shutil
 import subprocess
+import sys
+from cmake_template import get_cmake_content
 
 def read_file(filename):
     with open(filename, 'r') as file:
@@ -26,85 +29,50 @@ def get_valid_string(term_string):
     term_string = ' '.join(term_string.split())
     return term_string
 
-def create_folder_and_make(project_path):
+def create_folder_and_make(make_type:str=''):
+
     if os.path.exists('build'):
         shutil.rmtree('build')
     os.makedirs('build')
     os.chdir('build')
-    subprocess.call('cmake ..', shell=True)
-    subprocess.call('make', shell=True)
+
+    if make_type.lower() == 'xcode':
+        subprocess.call('cmake -GXcode ..', shell=True)
+        subprocess.call('open .', shell=True)
+    else:
+        subprocess.call('cmake ..', shell=True)
+        subprocess.call('make', shell=True)
 
 
 projectPath = os.getcwd()
 options_content = read_file(os.path.join(projectPath, 'Make/options'))
 makefile_content = read_file(os.path.join(projectPath, 'Make/files'))
 
-include_dir = get_string_between_terms(options_content, 'EXE_INC')
-linkLibs = get_string_between_terms(options_content, 'EXE_LIBS', "")
-include_dir = get_valid_string(include_dir)
-linkLibs = get_valid_string(linkLibs)
+inc_path = get_string_between_terms(options_content, 'EXE_INC')
+inc_path = inc_path.replace('(LIB_SRC)', '{OpenFOAM_SRC}')
+inc_path = inc_path.replace('-I', '')
+
+lib_path = get_string_between_terms(options_content, 'EXE_LIBS', "")
+
+inc_path = get_valid_string(inc_path)
+lib_path = get_valid_string(lib_path)
+lib_path = lib_path.replace('-l','')
 
 projectName = os.path.basename(projectPath)
-source_name = makefile_content[0].strip()
+src_name = makefile_content[0].strip()
 
 print(f"Project name: {projectName}\n Project path: {projectPath}\n "\
-    f"source name: {source_name}\n include_dir: {include_dir}\n Link dir: {linkLibs}")
+    f"source name: {src_name}\n inc_path: {inc_path}\n Link dir: {lib_path}")
+cmake_content =get_cmake_content(projectPath=projectPath,projectName=projectName,src_name=src_name,inc_path=inc_path,lib_path=lib_path)
 
-# creating the CMakeLists.txt file should be handled in a separate function
 
-cmake_content = f"""
-cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
-# Check valid OpenFOAM
-if(DEFINED ENV{{WM_PROJECT_DIR}})
-        MESSAGE(STATUS "OpenFOAM: " $ENV{{WM_PROJECT_DIR}})
-else()
-        message(FATAL_ERROR "The OpenFOAM bashrc is not sourced")
-endif(DEFINED ENV{{WM_PROJECT_DIR}})
-list(APPEND CMAKE_MODULE_PATH "$ENV{{WM_PROJECT_DIR}}/cmake")
-list(APPEND CMAKE_MODULE_PATH "${{CMAKE_CURRENT_SOURCE_DIR}}/cmake")
-set(CMAKE_XCODE_GENERATE_SCHEME TRUE)  #需要再最前面设置这个CMAKE_XCODE_GENERATE_SCHEME变量为TRUE才能使xcode项目的scheme设置生效
-
-project({projectName} LANGUAGES CXX C)
-set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-# =====================================================================================
-#             OpenFOAM configurations: elegant way!
-# -------------------------------------------------------------------------------------
-include(OpenFOAM)
-# =====================================================================================
-#             Include path configuration, similar to that in Make/options
-include_directories({include_dir})
-# =====================================================================================
-set(PATH_SRC "src_Foundation")
-if(${{OpenFOAM_VERSION}} MATCHES "v([0-9]*)")
-    set(PATH_SRC "{projectPath}")
-endif()
-#add_subdirectory(${{PATH_SRC}})
-include_directories(${{PATH_SRC}})
-
-add_executable(${{PROJECT_NAME}} ${{PATH_SRC}}/{source_name})
-
-# dynamic link
-#target_link_libraries(${{PROJECT_NAME}} OpenFOAM dl m Pstream finiteVolume fvOptions meshTools)
-target_link_libraries(${{PROJECT_NAME}} OpenFOAM dl Pstream {linkLibs})
-
-# =====================================================================================
-#             XCode scheme configurations
-# -------------------------------------------------------------------------------------
-if (CMAKE_GENERATOR MATCHES "Xcode")
-    message(STATUS "Set xcode scheme-run-arguments")
-    # 设置xcode运行时的环境变量，因为OpenFOAM.dylib会检查OpenFOAM环境变量是否有效，否则直接退出无法运行
-    # 需要在CMakeLists.txt的最前面设置 CMAKE_XCODE_GENERATE_SCHEME 为TRUE使其生效
-    # set(CMAKE_XCODE_GENERATE_SCHEME TRUE)
-    set_property (TARGET ${{PROJECT_NAME}} PROPERTY XCODE_SCHEME_ARGUMENTS "-case ${{CMAKE_SOURCE_DIR}}/testCase")
-    set_property(TARGET ${{PROJECT_NAME}} PROPERTY XCODE_SCHEME_ENVIRONMENT WM_PROJECT_DIR=$ENV{{WM_PROJECT_DIR}} WM_PROJECT=$ENV{{WM_PROJECT}} WM_PROJECT_VERSION=$ENV{{WM_PROJECT_VERSION}})
-endif ()
-# =====================================================================================
-# ======================= Message out ===========================
-message(STATUS "Configuration type: " ${{CMAKE_CONFIGURATION_TYPES}})
-"""
 with open("CMakeLists.txt", "w") as file:
     file.write(cmake_content)
-create_folder_and_make(projectPath)
 
+
+if __name__ == "__main__":
+    # Check if any argument is passed
+    if len(sys.argv) > 1:
+        create_folder_and_make(sys.argv[1])  # sys.argv[1] is the first command-line argument
+    else:
+        create_folder_and_make() 

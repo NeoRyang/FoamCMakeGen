@@ -1,0 +1,7 @@
+__pycache__
+.DS_Store
+testSolver/Make/darwin64ClangDPInt32Opt/
+testSolver/testCase/[1-9]*/
+testSolver/testCase/[0-9]*/**
+testSolver/testCase/constant/polymesh
+testSolver/build
