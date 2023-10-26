@@ -41,7 +41,7 @@ def create_folder_and_make(make_type:str=''):
     os.makedirs('build')
     os.chdir('build')
 
-    if make_type.lower() == 'xcode':
+    if make_type.lower() in ['x', 'xcode']:
         subprocess.call('cmake -GXcode ..', shell=True)
         subprocess.call('open .', shell=True)
     else:
