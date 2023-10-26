@@ -6,9 +6,14 @@ import subprocess
 import sys
 from cmake_template import get_cmake_content
 
+
 def read_file(filename):
-    with open(filename, 'r') as file:
-        return file.readlines()
+    try:
+        with open(filename, 'r') as file:
+            return file.readlines()
+    except FileNotFoundError:
+        print(f"[Error] The file {filename} was not found.")
+        sys.exit(1)  # terminate the program
 
 def get_string_between_terms(contents, start_term, end_term=""):
     term_lines = [line for line in contents if line.strip().startswith(start_term)]
@@ -64,6 +69,8 @@ src_name = makefile_content[0].strip()
 print(f"Project name: {projectName}\n Project path: {projectPath}\n "\
     f"source name: {src_name}\n inc_path: {inc_path}\n Link dir: {lib_path}")
 cmake_content =get_cmake_content(projectPath=projectPath,projectName=projectName,src_name=src_name,inc_path=inc_path,lib_path=lib_path)
+
+
 
 
 with open("CMakeLists.txt", "w") as file:
