@@ -11,6 +11,7 @@ python generate_cmake_lists.py [option]
 
 Where option (optional) is Xcode or xcode. If this option is provided, the script will generate a project file named projectName.xcodeproj.
 
+For more information about how to develop OpenFOAM with IDEs, you can refer to the following guide: [Develop OpenFOAM with IDEs](https://gitlab.com/seafloor-modeling-group/numericalmodeling/-/wikis/Develop-OpenFOAM-with-IDEs).
 
 
 ## How It Works
