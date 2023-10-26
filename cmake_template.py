@@ -25,6 +25,8 @@ set(OpenFOAM_VERSION $ENV{{WM_PROJECT_VERSION}})
 set(OpenFOAM_DIR $ENV{{WM_PROJECT_DIR}})
 set(OpenFOAM_LIB_DIR $ENV{{FOAM_LIBBIN}})
 set(OpenFOAM_SRC $ENV{{FOAM_SRC}})
+set(OpenFOAM_USER_APPBIN $ENV{{FOAM_USER_APPBIN}})
+
 # ====================== Some difference between ESI version and Foundation version ==================
 # Of course you can change some parameters here, e.g., some pre-settings in ~/.OpenFOAM/prefs.h
 set(PATH_LIB_OPENMPI "openmpi-system")  # Foundation version
@@ -67,7 +69,8 @@ endif()
 include_directories(${{PATH_SRC}})
 
 add_executable(${{PROJECT_NAME}} ${{PATH_SRC}}/{src_name})
-
+set_target_properties(${{PROJECT_NAME}}  PROPERTIES 
+    RUNTIME_OUTPUT_DIRECTORY ${{OpenFOAM_USER_APPBIN}})
 # dynamic link
 target_link_libraries(${{PROJECT_NAME}} OpenFOAM dl m Pstream {lib_path})
 

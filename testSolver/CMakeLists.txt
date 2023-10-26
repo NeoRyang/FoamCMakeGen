@@ -23,6 +23,8 @@ set(OpenFOAM_VERSION $ENV{WM_PROJECT_VERSION})
 set(OpenFOAM_DIR $ENV{WM_PROJECT_DIR})
 set(OpenFOAM_LIB_DIR $ENV{FOAM_LIBBIN})
 set(OpenFOAM_SRC $ENV{FOAM_SRC})
+set(OpenFOAM_USER_APPBIN $ENV{FOAM_USER_APPBIN})
+
 # ====================== Some difference between ESI version and Foundation version ==================
 # Of course you can change some parameters here, e.g., some pre-settings in ~/.OpenFOAM/prefs.h
 set(PATH_LIB_OPENMPI "openmpi-system")  # Foundation version
@@ -59,13 +61,14 @@ include_directories(${OpenFOAM_SRC}/finiteVolume/lnInclude ${OpenFOAM_SRC}/meshT
 # =====================================================================================
 set(PATH_SRC "src_Foundation")
 if(${OpenFOAM_VERSION} MATCHES "v([0-9]*)") 
-    set(PATH_SRC /Users/ryang/GitHub/foamCMakeGen/testSolver)
+    set(PATH_SRC /Users/ryang/GitHub/foamCmakeGen/testSolver)
 endif()
 #add_subdirectory(${PATH_SRC})
 include_directories(${PATH_SRC})
 
 add_executable(${PROJECT_NAME} ${PATH_SRC}/testIcoFoam.C)
-
+set_target_properties(${PROJECT_NAME}  PROPERTIES 
+    RUNTIME_OUTPUT_DIRECTORY ${OpenFOAM_USER_APPBIN})
 # dynamic link
 target_link_libraries(${PROJECT_NAME} OpenFOAM dl m Pstream finiteVolume meshTools)
 
