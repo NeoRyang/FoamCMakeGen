@@ -1,0 +1,3 @@
+testIcoFoam.C
+
+EXE = $(FOAM_APPBIN)/testIcoFoam
